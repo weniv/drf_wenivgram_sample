@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko-kr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필 페이지</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #eee;
+        }
+
+        .profile-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-info {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ddd;
+        }
+
+        .username {
+            margin: 10px 0;
+            font-size: 24px;
+        }
+
+        .bio {
+            color: #666;
+        }
+
+        .posts-container {
+            margin-top: 20px;
+        }
+
+        .posts-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .posts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .userimg {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ddd;
+            background: #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-info">
+            <div class="userimg"></div>
+            <h2 class="username">이름</h2>
+            <p class="bio">짧은 소개</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchUserProfile();
+        });
+
+        function getUserIdFromToken(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const payload = JSON.parse(atob(base64));
+                return payload.user_id;  // 토큰의 payload에서 user_id 필드 추출
+            } catch (error) {
+                console.error('토큰 분석 중 오류:', error);
+                return null;
+            }
+        }
+    
+        function fetchUserProfile() {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                alert('로그인이 필요합니다.');
+                window.location.href = 'login.html';
+                return;
+            }
+    
+            // 현재 로그인한 사용자의 정보를 가져오는 URL을 사용합니다.
+            // 예시: 'http://127.0.0.1:8000/users/profile/' 또는 적절한 URL
+            fetch(`http://127.0.0.1:8000/users/user/${getUserIdFromToken(accessToken)}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('프로필 정보를 불러오는 데 실패했습니다.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                updateProfileSection(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    
+        function updateProfileSection(userData) {
+            document.querySelector('.username').textContent = userData.username;
+            document.querySelector('.bio').textContent = userData.bio || '소개가 없습니다.';
+        }
+    </script>
+    
+</body>
+</html>

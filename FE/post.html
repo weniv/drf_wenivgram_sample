@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko-kr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상세페이지</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #eee;
+        }
+
+        #postContainer {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border: 1px solid #dbdbdb;
+        }
+
+        #postContainer img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        #postContainer p {
+            margin: 10px 0;
+        }
+
+        #likeButton {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 10px;
+            text-align: center;
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #likeButton:hover {
+            background-color: #0086e5;
+        }
+
+        #commentsContainer {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border: 1px solid #dbdbdb;
+        }
+
+        #commentForm {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border: 1px solid #dbdbdb;
+            display: flex;
+            gap: 10px;
+        }
+
+        #commentForm input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #dbdbdb;
+            border-radius: 5px;
+        }
+
+        #commentForm button {
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #commentForm button:hover {
+            background-color: #0086e5;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="postContainer">
+        <!-- 게시물 상세 정보가 여기에 표시됩니다 -->
+    </div>
+
+    <div id="likeButton">
+        <button>좋아요</button>
+    </div>
+
+    <div id="commentsContainer">
+        <!-- 댓글이 여기에 표시됩니다 -->
+    </div>
+
+    <form id="commentForm">
+        <input type="text" id="commentText" placeholder="댓글 달기...">
+        <button type="submit">댓글 작성</button>
+    </form>
+
+    <script>
+        // URL에서 게시물 ID 추출
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('postId');
+    
+        // 게시물 상세 정보를 불러오는 함수
+        function fetchPostDetail() {
+            const accessToken = localStorage.getItem('access_token');
+
+            fetch(`http://127.0.0.1:8000/posts/posts/${postId}/`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    displayPost(data);
+                    checkLikeStatus(data); // 좋아요 상태 확인 함수 호출
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    
+        // 게시물을 화면에 표시하는 함수
+        function displayPost(post) {
+            const postContainer = document.getElementById('postContainer');
+            const commentsContainer = document.getElementById('commentsContainer');
+
+            postContainer.innerHTML = `
+                <img src="${post.image}" alt="Post image">
+                <p>${post.caption}</p>
+                <p>좋아요: ${post.likesCount || 0}개</p>
+            `;
+            commentsContainer.innerHTML = `
+                <h3>댓글</h3>
+                ${post.comments? post.comments.map(comment => `
+                    <div class="comment">
+                        <strong>${comment.author_username}</strong>: ${comment.text}
+                    </div>
+                `).join('') : ''}
+            `;
+        }
+
+        // 좋아요 상태를 추적하여 UI를 업데이트하는 코드 시작
+        let isLiked = false;  // 좋아요 상태를 추적하는 변수 초기화
+
+        function checkLikeStatus(postData) {
+            // 서버에서 제공하는 좋아요 상태 정보를 기반으로 isLiked 변수 설정
+            // 예: 서버에서 postData에 isLiked 정보를 포함하여 반환한다고 가정
+            isLiked = postData.isLiked;
+            updateLikeButton(); // 좋아요 버튼 UI 업데이트 함수 호출
+        }
+
+        // 좋아요 버튼 UI 업데이트 함수
+        function updateLikeButton() {
+            const likeButton = document.getElementById('likeButton');
+            // 좋아요 상태에 따라 버튼 스타일 변경
+            likeButton.textContent = isLiked ? '좋아요 취소' : '좋아요';
+        }
+    
+        // 좋아요 버튼 클릭 이벤트 리스너
+        document.getElementById('likeButton').addEventListener('click', function() {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                alert('로그인이 필요합니다.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const method = isLiked ? 'DELETE' : 'POST';
+            fetch(`http://127.0.0.1:8000/posts/posts/${postId}/like/`, {
+                method: method,  // 좋아요 설정 또는 해제를 위한 요청
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('좋아요 처리 중 오류가 발생했습니다.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 여기서 data를 사용하여 좋아요 상태를 업데이트하거나, UI를 변경하세요.
+                // 예: 좋아요 수를 업데이트하거나, 버튼 스타일 변경 등
+                console.log('좋아요 상태 변경됨:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+    
+        // 댓글 작성 이벤트 리스너
+        document.getElementById('commentForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const commentText = document.getElementById('commentText').value;
+            const accessToken = localStorage.getItem('access_token');
+            // 댓글 작성 관련 API 요청 로직
+            // POST: posts/posts/comments/
+            // post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+            // author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+            // text = models.TextField()
+            // created_at = models.DateTimeField(auto_now_add=True)
+            fetch(`http://127.0.0.1:8000/posts/comments/`, {
+                method: 'POST',  // 좋아요 설정 또는 해제를 위한 POST 요청
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    'post':postId,
+                    'text':commentText
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('댓글 작성 중 오류가 발생했습니다.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('댓글 작성됨:', data);
+                // 댓글 작성 후 UI 업데이트 로직 (예: 댓글 목록 갱신)
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('댓글 작성 실패');
+            });
+        });
+    
+        // 페이지 로드 시 게시물 상세 정보를 불러옵니다
+        if (postId) {
+            fetchPostDetail();
+        } else {
+            console.error('Post ID not found in URL');
+        }
+    </script>
+</body>
+</html>

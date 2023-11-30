@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko-kr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시물 생성</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #eee;
+            padding-top: 40px;
+        }
+        .create-post-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .create-post-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #createPostForm {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #createPostForm input[type="text"],
+        #createPostForm input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #createPostForm button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #createPostForm button:hover {
+            background-color: #0056b3;
+        }
+        #caption{
+            height: 300px;
+            padding: 10px;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="create-post-container">
+        <h2>게시물 생성</h2>
+        <form id="createPostForm">
+            <textarea id="caption" placeholder="내용을 넣어주세요."></textarea>
+            <input type="file" id="image" required>
+            <button type="submit">Create Post</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('createPostForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                alert('로그인이 필요합니다.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const formData = new FormData();
+            const caption = document.getElementById('caption').value;
+            const image = document.getElementById('image').files[0];
+
+            formData.append('caption', caption);
+            formData.append('image', image);
+
+            fetch('http://127.0.0.1:8000/posts/posts/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken,
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Post creation failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Post created:', data);
+                // 성공적으로 게시물이 생성된 후의 처리 로직
+                window.location.href = 'index.html';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

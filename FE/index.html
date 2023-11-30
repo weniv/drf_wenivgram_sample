@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko-kr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메인페이지</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #eee;
+        }
+        .navbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #dbdbdb;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        .posts {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 15px;
+            background: #eee;
+        }
+        .post {
+            background: #fff;
+            margin-bottom: 20px;
+            border: 1px solid #dbdbdb;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .post img {
+            max-width: 100%;
+            height: auto;
+        }
+        .post p {
+            margin: 10px 0;
+        }
+
+        #logoutButton{
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #logoutButton:hover{
+            background-color: #0086e5;
+        }
+        #createpost{
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #createpost:hover{
+            background-color: #0086e5;
+        }
+        .userimg{
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #dbdbdb;
+            margin-right: 10px;
+        }
+        .user{
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>wenivgram</h1>
+        <div class="loginfield">
+            <!-- 사용자가 로그인을 했다면 로그아웃 필드가 여기 생성됩니다. -->
+        </div>
+    </nav>
+
+    <div class="posts" id="posts">
+        <!-- 게시물이 여기에 표시됩니다 -->
+    </div>
+
+    <script>
+        // 로그인을 했다면 JWT 토큰에서 사용자 이름을 받아 화면에 표시합니다.
+        document.addEventListener('DOMContentLoaded', function() {
+            const accessToken = localStorage.getItem('access_token');
+
+            if (accessToken) {
+                document.querySelector('.loginfield').innerHTML = `
+                    <button id="logoutButton">Logout</button>
+                    <button id="createpost">Create</button>
+                `;
+            }
+
+            // 로그아웃 버튼 클릭 이벤트 리스너
+            document.getElementById('logoutButton').addEventListener('click', function() {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = 'login.html'; // 로그인 페이지로 리디렉트
+            });
+
+            // 게시물 생성 버튼 클릭 이벤트 리스너
+            document.getElementById('createpost').addEventListener('click', function() {
+                window.location.href = 'create-post.html';
+            });
+        });
+        
+        // check1. access token이 없으면 로그인 페이지로 리디렉트
+        // check2. access token이 있는데 만료되었다면 refresh token으로 재발급 시도
+        // chekc3. access token이 있고 유효하다면 게시물을 불러옵니다.
+        document.addEventListener('DOMContentLoaded', function() {
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                refreshToken(); // 액세스 토큰이 없으면 리프레시 토큰으로 재발급 시도
+            } else {
+                fetchPosts();
+            }
+        });
+    
+        function fetchPosts() {
+            const accessToken = localStorage.getItem('access_token');
+    
+            if (!accessToken) {
+                // 토큰이 없으면 로그인 페이지로 리디렉트
+                window.location.href = 'login.html';
+                return;
+            }
+    
+            fetch('http://127.0.0.1:8000/posts/posts/list/', {
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // 응답이 유효하지 않으면 리프레시 토큰으로 재발급 시도
+                    refreshToken()
+                    return;
+                }
+
+                let res = response.json();
+                return res;
+            })
+            .then(data => {
+                const postsContainer = document.getElementById('posts');
+                console.log(data);
+                if (data && data.length > 0) {
+                    data.forEach(post => {
+                        const postElement = document.createElement('div');
+                        postElement.className = 'post';
+                        postElement.innerHTML = `
+                            <div class="user">
+                                <div class="userimg"></div>
+                                <p class="username">${post.author_username}</p>
+                            </div>
+                            <img src="${post.image}" alt="Post image">
+                            <p>${post.caption}</p>
+                        `;
+                        postElement.addEventListener('click', () => {
+                            // 게시물 클릭 시 post.html로 이동하며, 게시물 ID를 URL에 포함
+                            window.location.href = `post.html?postId=${post.id}`;
+                        });
+                        postsContainer.appendChild(postElement);
+                    });
+                } else {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'post';
+                    postElement.innerHTML = `<p>게시물이 없습니다.</p>`;
+                    postsContainer.appendChild(postElement);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // window.location.href = 'login.html';
+            });
+        }
+
+        function refreshToken() {
+            const refreshToken = localStorage.getItem('refresh_token');
+
+            if (!refreshToken) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            fetch('http://127.0.0.1:8000/api/token/refresh/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ refresh: refreshToken })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.access) {
+                    localStorage.setItem('access_token', data.access);
+                    fetchPosts(); // 액세스 토큰 재발급 후 게시물 다시 불러오기
+                } else {
+                    window.location.href = 'login.html'; // 리프레시 토큰 만료 시 로그인 페이지로
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                window.location.href = 'login.html';
+            });
+        }
+    </script>
+</body>
+</html>
