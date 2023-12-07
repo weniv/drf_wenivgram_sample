@@ -42,7 +42,6 @@
         .post p {
             margin: 10px 0;
         }
-
         #logoutButton{
             background-color: #0095f6;
             color: white;
@@ -52,6 +51,17 @@
             cursor: pointer;
         }
         #logoutButton:hover{
+            background-color: #0086e5;
+        }
+        #profile{
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #profile:hover{
             background-color: #0086e5;
         }
         #createpost{
@@ -77,11 +87,19 @@
             align-items: center;
             margin-bottom: 10px;
         }
+        .logo{
+            font-size: 24px;
+            margin: 0;
+        }
+        .logo a{
+            color: black;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <h1>wenivgram</h1>
+        <h1 class="logo"><a href="index.html">wenivgram</a></h1>
         <div class="loginfield">
             <!-- 사용자가 로그인을 했다면 로그아웃 필드가 여기 생성됩니다. -->
         </div>
@@ -100,6 +118,7 @@
                 document.querySelector('.loginfield').innerHTML = `
                     <button id="logoutButton">Logout</button>
                     <button id="createpost">Create</button>
+                    <button id="profile">Profile</button>
                 `;
             }
 
@@ -113,6 +132,11 @@
             // 게시물 생성 버튼 클릭 이벤트 리스너
             document.getElementById('createpost').addEventListener('click', function() {
                 window.location.href = 'create-post.html';
+            });
+
+            // 프로필 버튼 클릭 이벤트 리스너
+            document.getElementById('profile').addEventListener('click', function() {
+                window.location.href = 'profile.html';
             });
         });
         

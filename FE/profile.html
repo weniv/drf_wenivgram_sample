@@ -11,6 +11,19 @@
             background-color: #eee;
         }
 
+        .navbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #dbdbdb;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
         .profile-container {
             max-width: 800px;
             margin: 20px auto;
@@ -68,9 +81,57 @@
             border: 2px solid #ddd;
             background: #eee;
         }
+
+        #logoutButton{
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #logoutButton:hover{
+            background-color: #0086e5;
+        }
+        #profile{
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #profile:hover{
+            background-color: #0086e5;
+        }
+        #createpost{
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #createpost:hover{
+            background-color: #0086e5;
+        }
+        .logo{
+            font-size: 24px;
+            margin: 0;
+        }
+        .logo a{
+            color: black;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <h1 class="logo"><a href="index.html">wenivgram</a></h1>
+        <div class="loginfield">
+            <!-- 사용자가 로그인을 했다면 로그아웃 필드가 여기 생성됩니다. -->
+        </div>
+    </nav>
     <div class="profile-container">
         <div class="profile-info">
             <div class="userimg"></div>
@@ -80,6 +141,36 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const accessToken = localStorage.getItem('access_token');
+
+            if (accessToken) {
+                document.querySelector('.loginfield').innerHTML = `
+                    <button id="logoutButton">Logout</button>
+                    <button id="createpost">Create</button>
+                    <button id="profile">Profile</button>
+                `;
+            }
+
+            // 로그아웃 버튼 클릭 이벤트 리스너
+            document.getElementById('logoutButton').addEventListener('click', function() {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = 'login.html'; // 로그인 페이지로 리디렉트
+            });
+
+            // 게시물 생성 버튼 클릭 이벤트 리스너
+            document.getElementById('createpost').addEventListener('click', function() {
+                window.location.href = 'create-post.html';
+            });
+
+            // 프로필 버튼 클릭 이벤트 리스너
+            document.getElementById('profile').addEventListener('click', function() {
+                window.location.href = 'profile.html';
+            });
+        });
+
+
         document.addEventListener('DOMContentLoaded', function() {
             fetchUserProfile();
         });
@@ -129,6 +220,10 @@
         function updateProfileSection(userData) {
             document.querySelector('.username').textContent = userData.username;
             document.querySelector('.bio').textContent = userData.bio || '소개가 없습니다.';
+            if (userData.profile_picture) {
+                document.querySelector('.userimg').style.backgroundImage = `url(${userData.profile_picture})`;
+                document.querySelector('.userimg').style.backgroundSize = 'cover';
+            }
         }
     </script>
     
