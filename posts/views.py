@@ -1,15 +1,25 @@
-from rest_framework import generics, views, status, response, permissions
-from .serializers import CommentSerializer
-from .models import Comment, Post, Like
+# posts > views.py
+
+# Basic Django Modules
 from django.shortcuts import get_object_or_404
+
+# Rest Framework Modules
+from rest_framework import generics, views, status, response, permissions
 from rest_framework.permissions import IsAuthenticated
-from .serializers import PostSerializer
+
+# Models
+from .serializers import PostSerializer, CommentSerializer
+from .models import Comment, Post, Like
 
 
 class PostListView(generics.ListAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticated]  # 인증된 사용자만 접근 가능
+
+class PostDetailView(generics.RetrieveAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
 
 
 class PostCreateView(generics.CreateAPIView):
@@ -56,8 +66,3 @@ class LikeView(views.APIView):
         like = get_object_or_404(Like, post=post, user=request.user)
         like.delete()
         return response.Response(status=status.HTTP_204_NO_CONTENT)
-    
-
-class PostDetailView(generics.RetrieveAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer

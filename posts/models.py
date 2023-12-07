@@ -8,7 +8,10 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.caption
+        # self.author와 self.author.username은 같은 값을 반환합니다.
+        # 다만 시리얼라이저에서는 self.author.username을 사용해야 합니다.
+        # 시리얼라이저에서 author는 pk 값을 보여줍니다. 
+        return f'{self.author} - {self.caption[:10]}'
 
 
 class Comment(models.Model):
@@ -18,7 +21,7 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.author.username}: {self.text}"
+        return f'{self.author.username} - {self.text}'
 
 
 class Like(models.Model):
@@ -30,5 +33,4 @@ class Like(models.Model):
         unique_together = ('post', 'user')
 
     def __str__(self):
-        return f"{self.user.username} likes {self.post.caption}"
-
+        return f'{self.user.username} likes {self.post.caption}'

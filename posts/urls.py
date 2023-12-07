@@ -1,11 +1,11 @@
 from django.urls import path
 from .views import (
     PostListView,
+    PostDetailView,
     PostCreateView,
     CommentCreateView,
     CommentListView,
     LikeView,
-    PostDetailView,
 )
 
 urlpatterns = [
