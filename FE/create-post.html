@@ -87,7 +87,7 @@
             formData.append('caption', caption);
             formData.append('image', image);
 
-            fetch('http://127.0.0.1:8000/posts/posts/', {
+            fetch('http://127.0.0.1:8000/posts/create/', {
                 method: 'POST',
                 headers: {
                     'Authorization': 'Bearer ' + accessToken,

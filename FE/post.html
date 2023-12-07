@@ -117,7 +117,7 @@
         function fetchPostDetail() {
             const accessToken = localStorage.getItem('access_token');
 
-            fetch(`http://127.0.0.1:8000/posts/posts/${postId}/`, {
+            fetch(`http://127.0.0.1:8000/posts/${postId}/`, {
                     headers: {
                         'Authorization': 'Bearer ' + accessToken
                     }
@@ -178,7 +178,7 @@
             }
 
             const method = isLiked ? 'DELETE' : 'POST';
-            fetch(`http://127.0.0.1:8000/posts/posts/${postId}/like/`, {
+            fetch(`http://127.0.0.1:8000/posts/${postId}/like/`, {
                 method: method,  // 좋아요 설정 또는 해제를 위한 요청
                 headers: {
                     'Authorization': 'Bearer ' + accessToken,
@@ -188,6 +188,13 @@
             .then(response => {
                 if (!response.ok) {
                     throw new Error('좋아요 처리 중 오류가 발생했습니다.');
+                }
+                const likeButton = document.getElementById('likeButton');
+                if (method === 'DELETE') {
+                    likeButton.textContent = '좋아요';
+                }
+                else {
+                    likeButton.textContent = '좋아요 취소';
                 }
                 return response.json();
             })
@@ -244,7 +251,7 @@
         if (postId) {
             fetchPostDetail();
         } else {
-            console.error('Post ID not found in URL');
+            console.error('URL 주소가 잘못되었습니다.');
         }
     </script>
 </body>
