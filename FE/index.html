@@ -110,10 +110,12 @@
     </div>
 
     <script>
+        // 중복되는 코드는 그대로 중복되게 했습니다. 따로 JS로 빼지 않았습니다.
         // 로그인을 했다면 JWT 토큰에서 사용자 이름을 받아 화면에 표시합니다.
         document.addEventListener('DOMContentLoaded', function() {
             const accessToken = localStorage.getItem('access_token');
 
+            // accessToken 만료 확인은 하지 않았습니다.
             if (accessToken) {
                 document.querySelector('.loginfield').innerHTML = `
                     <button id="logoutButton">Logout</button>
